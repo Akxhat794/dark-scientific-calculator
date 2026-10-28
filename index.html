@@ -1,0 +1,349 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#101114">
+<title>DarkCalc — Scientific Calculator</title>
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #101114;
+  --panel: #191a20;
+  --key: #252730;
+  --key-hover: #343642;
+  --accent: #a3e635;
+  --text: #f5f6fa;
+  --muted: #9395a3;
+  --border: #30313b;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; min-height: 100vh; padding: 24px 14px;
+  display: grid; place-items: center;
+  background: radial-gradient(ellipse at top, #20251e, var(--bg) 55%);
+  color: var(--text);
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+}
+.app { width: min(100%, 440px); }
+header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.brand { font-size: 19px; font-weight: 800; letter-spacing: -.5px; }
+.brand span { color: var(--accent); }
+.tag { color: var(--muted); font-size: 11px; letter-spacing: 1.5px; }
+.calculator {
+  padding: 20px; background: rgba(25,26,32,.96);
+  border: 1px solid var(--border); border-radius: 27px;
+  box-shadow: 0 24px 70px #0008;
+}
+.screen {
+  min-height: 145px; display: flex; flex-direction: column;
+  justify-content: flex-end; align-items: flex-end;
+  padding: 8px 3px 22px; overflow: hidden;
+}
+#expression {
+  width: 100%; min-height: 25px; color: var(--muted);
+  text-align: right; overflow-wrap: anywhere; font-size: 15px;
+}
+#result {
+  width: 100%; text-align: right; overflow-wrap: anywhere;
+  font-size: clamp(32px, 9vw, 46px); font-weight: 650;
+  letter-spacing: -1.5px; line-height: 1.25;
+}
+#status { color: var(--accent); font-size: 11px; margin-top: 8px; }
+.toolbar { display: flex; gap: 8px; margin-bottom: 12px; }
+button {
+  border: 1px solid transparent; cursor: pointer;
+  font: inherit; transition: background .15s, transform .1s;
+  -webkit-tap-highlight-color: transparent;
+}
+button:active { transform: scale(.96); }
+.mode {
+  flex: 1; padding: 10px; border-radius: 10px;
+  color: var(--muted); background: var(--key); font-size: 12px;
+}
+.mode.active { color: var(--accent); border-color: #a3e63566; }
+.keys { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 9px; }
+.key {
+  min-width: 0; height: 53px; border-radius: 14px;
+  background: var(--key); color: var(--text);
+  font-size: 16px; font-weight: 550;
+}
+.key:hover { background: var(--key-hover); }
+.key.fn { color: #c2e99a; font-size: 13px; }
+.key.op { color: var(--accent); background: #303927; font-size: 20px; }
+.key.danger { color: #ff8585; }
+.key.equal { color: #11150b; background: var(--accent); font-size: 23px; font-weight: 800; }
+.key.zero { grid-column: span 2; }
+.footer { text-align: center; color: var(--muted); font-size: 11px; margin-top: 18px; }
+@media(max-width:360px) {
+  .calculator { padding: 13px; border-radius: 21px; }
+  .keys { gap: 6px; }
+  .key { height: 47px; border-radius: 11px; font-size: 14px; }
+  .key.fn { font-size: 11px; }
+}
+</style>
+</head>
+<body>
+<main class="app">
+  <header>
+    <div class="brand">Dark<span>Calc</span></div>
+    <div class="tag">SCIENTIFIC · 01</div>
+  </header>
+
+  <section class="calculator" aria-label="Scientific calculator">
+    <div class="screen">
+      <div id="expression" aria-live="polite">Ready to calculate</div>
+      <div id="result">0</div>
+      <div id="status">DEG · SCIENTIFIC MODE</div>
+    </div>
+
+    <div class="toolbar">
+      <button class="mode active" id="angleBtn" data-action="angle">DEG</button>
+      <button class="mode active" id="sciBtn" data-action="scientific">SCI ON</button>
+      <button class="mode" data-action="backspace" aria-label="Delete last character">⌫ DELETE</button>
+    </div>
+
+    <div class="keys" id="keys">
+      <button class="key fn" data-insert="sin(">sin</button>
+      <button class="key fn" data-insert="cos(">cos</button>
+      <button class="key fn" data-insert="tan(">tan</button>
+      <button class="key fn" data-insert="log(">log</button>
+      <button class="key fn" data-insert="ln(">ln</button>
+
+      <button class="key fn" data-insert="asin(">sin⁻¹</button>
+      <button class="key fn" data-insert="acos(">cos⁻¹</button>
+      <button class="key fn" data-insert="atan(">tan⁻¹</button>
+      <button class="key fn" data-insert="sqrt(">√</button>
+      <button class="key fn" data-insert="^2">x²</button>
+
+      <button class="key fn" data-insert="(">(</button>
+      <button class="key fn" data-insert=")">)</button>
+      <button class="key fn" data-insert="pi">π</button>
+      <button class="key fn" data-insert="e">e</button>
+      <button class="key fn" data-insert="%">%</button>
+
+      <button class="key danger" data-action="clear">AC</button>
+      <button class="key" data-insert="7">7</button>
+      <button class="key" data-insert="8">8</button>
+      <button class="key" data-insert="9">9</button>
+      <button class="key op" data-insert="÷">÷</button>
+
+      <button class="key fn" data-insert="^">xʸ</button>
+      <button class="key" data-insert="4">4</button>
+      <button class="key" data-insert="5">5</button>
+      <button class="key" data-insert="6">6</button>
+      <button class="key op" data-insert="×">×</button>
+
+      <button class="key fn" data-insert="1/(">1/x</button>
+      <button class="key" data-insert="1">1</button>
+      <button class="key" data-insert="2">2</button>
+      <button class="key" data-insert="3">3</button>
+      <button class="key op" data-insert="−">−</button>
+
+      <button class="key fn" data-action="sign">+/−</button>
+      <button class="key zero" data-insert="0">0</button>
+      <button class="key" data-insert=".">.</button>
+      <button class="key op" data-insert="+">+</button>
+
+      <button class="key fn" data-action="ans">ANS</button>
+      <button class="key fn" data-action="copy">COPY</button>
+      <button class="key fn" data-action="clear">C</button>
+      <button class="key equal" style="grid-column:span 2" data-action="equals">=</button>
+    </div>
+  </section>
+  <div class="footer">Made with HTML, CSS & JavaScript · Your calculations stay in your browser</div>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+let expr = "";
+let answer = 0;
+let justEvaluated = false;
+let degrees = true;
+let scientific = true;
+
+function showExpression(text) { $("expression").textContent = text; }
+function showResult(value) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    $("result").textContent = String(Number(value.toPrecision(12)));
+  } else {
+    $("result").textContent = String(value);
+  }
+}
+function updateStatus() {
+  $("angleBtn").textContent = degrees ? "DEG" : "RAD";
+  $("angleBtn").classList.toggle("active", degrees);
+  $("sciBtn").textContent = scientific ? "SCI ON" : "SCI OFF";
+  $("sciBtn").classList.toggle("active", scientific);
+  $("status").textContent = (degrees ? "DEG" : "RAD") +
+    (scientific ? " · SCIENTIFIC MODE" : " · BASIC MODE");
+  document.querySelectorAll(".key.fn").forEach(b => {
+    if (["1/x", "+/−", "ANS", "COPY"].includes(b.textContent)) return;
+    b.hidden = !scientific;
+  });
+}
+function insert(value) {
+  if (justEvaluated && /[0-9.]|pi|e|sin\(|cos\(|tan\(|log\(|ln\(|sqrt\(|asin\(|acos\(|atan\(|\(/.test(value)) {
+    expr = "";
+  }
+  justEvaluated = false;
+  if (value === "1/(") expr += "1/(";
+  else expr += value;
+  showExpression(expr || "Ready to calculate");
+}
+function clearAll() {
+  expr = ""; justEvaluated = false;
+  showExpression("Ready to calculate"); showResult(0);
+}
+function tokenize(input) {
+  const tokens = [];
+  let i = 0;
+  while (i < input.length) {
+    const c = input[i];
+    if (/\s/.test(c)) { i++; continue; }
+    const number = input.slice(i).match(/^(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?/i);
+    if (number) { tokens.push({type:"number", value:Number(number[0])}); i += number[0].length; continue; }
+    const name = input.slice(i).match(/^[a-z]+/i);
+    if (name) { tokens.push({type:"name", value:name[0].toLowerCase()}); i += name[0].length; continue; }
+    if ("+-−*/×÷^()%".includes(c)) {
+      tokens.push({type:"symbol", value:({"−":"-","×":"*","÷":"/"})[c] || c}); i++; continue;
+    }
+    throw Error("Invalid character");
+  }
+  return tokens;
+}
+function calculate(input) {
+  const tokens = tokenize(input);
+  let pos = 0;
+  const peek = () => tokens[pos];
+  const take = () => tokens[pos++];
+  const match = v => peek()?.value === v ? (pos++, true) : false;
+  function primary() {
+    if (match("+")) return unary();
+    if (match("-")) return -unary();
+    if (match("(")) {
+      const n = add();
+      if (!match(")")) throw Error("Missing closing bracket");
+      return n;
+    }
+    const t = take();
+    if (!t) throw Error("Incomplete expression");
+    if (t.type === "number") return t.value;
+    if (t.type === "name") {
+      if (t.value === "pi") return Math.PI;
+      if (t.value === "e") return Math.E;
+      const funcs = ["sin","cos","tan","asin","acos","atan","sqrt","log","ln","abs","exp"];
+      if (!funcs.includes(t.value)) throw Error("Unknown function");
+      if (!match("(")) throw Error("Add ( after " + t.value);
+      const x = add();
+      if (!match(")")) throw Error("Missing closing bracket");
+      const angle = n => degrees ? n * Math.PI / 180 : n;
+      const result = ({
+        sin: x => Math.sin(angle(x)), cos: x => Math.cos(angle(x)),
+        tan: x => Math.tan(angle(x)),
+        asin: x => degrees ? Math.asin(x)*180/Math.PI : Math.asin(x),
+        acos: x => degrees ? Math.acos(x)*180/Math.PI : Math.acos(x),
+        atan: x => degrees ? Math.atan(x)*180/Math.PI : Math.atan(x),
+        sqrt: Math.sqrt, log: Math.log10, ln: Math.log,
+        abs: Math.abs, exp: Math.exp
+      })[t.value](x);
+      return result;
+    }
+    throw Error("Check your expression");
+  }
+  function power() {
+    let n = primary();
+    if (match("^")) n = Math.pow(n, unary());
+    return n;
+  }
+  function unary() { return power(); }
+  function postfix() {
+    let n = unary();
+    while (match("%")) n /= 100;
+    return n;
+  }
+  function multiply() {
+    let n = postfix();
+    while (peek() && ["*","/"].includes(peek().value)) {
+      const op = take().value, r = postfix();
+      n = op === "*" ? n*r : n/r;
+    }
+    return n;
+  }
+  function add() {
+    let n = multiply();
+    while (peek() && ["+","-"].includes(peek().value)) {
+      const op = take().value, r = multiply();
+      n = op === "+" ? n+r : n-r;
+    }
+    return n;
+  }
+  if (!tokens.length) return 0;
+  const result = add();
+  if (pos !== tokens.length) throw Error("Check operators or brackets");
+  if (!Number.isFinite(result)) throw Error("Math error");
+  return result;
+}
+function equals() {
+  if (!expr.trim()) return;
+  try {
+    const value = calculate(expr);
+    answer = value;
+    showExpression(expr + " =");
+    showResult(value);
+    expr = String(Number(value.toPrecision(12)));
+    justEvaluated = true;
+  } catch (e) {
+    showResult(e.message || "Math error");
+    justEvaluated = false;
+  }
+}
+function backspace() {
+  if (justEvaluated) { expr = ""; justEvaluated = false; }
+  else expr = expr.slice(0,-1);
+  showExpression(expr || "Ready to calculate");
+  if (!expr) showResult(0);
+}
+function toggleSign() {
+  if (!expr) { expr = "-"; }
+  else if (/^-?\d*\.?\d+$/.test(expr)) {
+    expr = expr.startsWith("-") ? expr.slice(1) : "-" + expr;
+  } else expr = "-(" + expr + ")";
+  justEvaluated = false;
+  showExpression(expr);
+}
+$("keys").addEventListener("click", async event => {
+  const button = event.target.closest("button");
+  if (!button) return;
+  if (button.dataset.insert !== undefined) insert(button.dataset.insert);
+  const action = button.dataset.action;
+  if (action === "clear") clearAll();
+  if (action === "backspace") backspace();
+  if (action === "equals") equals();
+  if (action === "sign") toggleSign();
+  if (action === "angle") { degrees = !degrees; updateStatus(); }
+  if (action === "scientific") { scientific = !scientific; updateStatus(); }
+  if (action === "ans") insert(String(Number(answer.toPrecision(12))));
+  if (action === "copy") {
+    try {
+      await navigator.clipboard.writeText($("result").textContent);
+      showExpression("Result copied");
+    } catch { showExpression("Copy unavailable in this browser"); }
+  }
+});
+document.addEventListener("keydown", event => {
+  if (/^[0-9.]$/.test(event.key)) insert(event.key);
+  else if (event.key === "+") insert("+");
+  else if (event.key === "-") insert("−");
+  else if (event.key === "*") insert("×");
+  else if (event.key === "/") { event.preventDefault(); insert("÷"); }
+  else if (event.key === "(" || event.key === ")" || event.key === "%" || event.key === "^") insert(event.key);
+  else if (event.key === "Enter" || event.key === "=") { event.preventDefault(); equals(); }
+  else if (event.key === "Backspace") backspace();
+  else if (event.key === "Escape") clearAll();
+});
+updateStatus();
+</script>
+</body>
+</html>
